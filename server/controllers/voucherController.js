@@ -142,11 +142,12 @@ const flutterwaveWebhook = async (req, res) => {
         { headers: { Authorization: `Bearer ${process.env.FLW_SECRET_KEY}` } }
       );
       amountNaira = fxRes.data.data.destination.amount;
-    } catch (fxErr) {
-      console.error("FX rate fetch failed, using fallback:", fxErr.message);
-      const fallbackRates = { GBP: 2050, USD: 1600, CAD: 1180 };
-      amountNaira = voucher.amountForeign * fallbackRates[voucher.currency];
-    }
+} catch (fxErr) {
+  console.error("FX rate fetch failed:", fxErr.response?.data || fxErr.message);
+  const fallbackRates = { GBP: 2050, USD: 1600, CAD: 1180 };
+  amountNaira = voucher.amountForeign * fallbackRates[voucher.currency];
+  console.log("Using fallback rate, amountNaira:", amountNaira);
+}
 
     // Generate unique voucher code
     let voucherCode;
