@@ -135,17 +135,18 @@ const flutterwaveWebhook = async (req, res) => {
     }
 
     // Lock in Naira amount at current FX rate
-    let amountNaira = 0;
-    try {
-      const fxRes = await axios.get(
-        `https://api.flutterwave.com/v3/transfers/rates?amount=${voucher.amountForeign}&destination_currency=NGN&source_currency=${voucher.currency}`,
-        { headers: { Authorization: `Bearer ${process.env.FLW_SECRET_KEY}` } }
-      );
-      amountNaira = fxRes.data.data.destination.amount;
+let amountNaira = 0;
+try {
+  const fxRes = await axios.get(
+    `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${voucher.currency.toLowerCase()}.json`
+  );
+  const rate = fxRes.data[voucher.currency.toLowerCase()].ngn;
+  amountNaira = Math.round(voucher.amountForeign * rate);
+  console.log(`FX rate: 1 ${voucher.currency} = ₦${rate}, amountNaira: ${amountNaira}`);
 } catch (fxErr) {
-  console.error("FX rate fetch failed:", fxErr.response?.data || fxErr.message);
+  console.error("FX rate fetch failed:", fxErr.message);
   const fallbackRates = { GBP: 2050, USD: 1600, CAD: 1180 };
-  amountNaira = voucher.amountForeign * fallbackRates[voucher.currency];
+  amountNaira = Math.round(voucher.amountForeign * fallbackRates[voucher.currency]);
   console.log("Using fallback rate, amountNaira:", amountNaira);
 }
 
